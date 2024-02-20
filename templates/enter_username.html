@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enter Username</title>
+</head>
+<body>
+    <h1>Enter Your Username</h1>
+    <form action="{{ url_for('enter_username', chatroom_id=chatroom_id) }}" method="post">
+        <input type="text" name="username" placeholder="Enter Your Username" required>
+        <button type="submit">Submit</button>
+    </form>
+    
+</body>
+</html>
