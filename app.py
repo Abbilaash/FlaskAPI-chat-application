@@ -7,6 +7,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app)
 
+messages = []
+
 def generate_chatroom_id():
     letters = string.ascii_uppercase
     return ''.join(random.choice(letters) for _ in range(4))
@@ -48,11 +50,18 @@ def chatroom(chatroom_id):
 def logout():
     session.pop('username', None)
     session.pop('chatroom_id', None)
+    messages.clear()
     return redirect(url_for('index'))
 
 @socketio.on('message')
 def handle_message(data):
+    messages.append(data)
     emit('message', {'username': data['username'], 'message': data['message']}, broadcast=True)
+
+@socketio.on('fetch_messages')
+def fetch_messages():
+    emit('messages', messages)
+
 
 
 if __name__ == '__main__':

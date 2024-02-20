@@ -3,41 +3,184 @@
 <head>
     <title>Chatroom - {{ chatroom_id }}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
-    <script>
-        var socket = io();
-    
-        function sendMessage() {
-            var messageInput = document.getElementById('message_input');
-            var message = messageInput.value.trim();
-            if (message !== '') {
-                socket.emit('message', {
-                    username: "{{ username }}",
-                    message: message
-                });
-                messageInput.value = '';
-            }
-        }
-    
-        function handleKeyPress(event) {
-            if (event.keyCode === 13) {
-                sendMessage();
-            }
-        }
-    
-        socket.on('message', function(data){
-            var chatbox = document.getElementById('chatbox');
-            var messageElement = document.createElement('div');
-            messageElement.textContent = data.username + ': ' + data.message; // Construct message here
-            chatbox.appendChild(messageElement);
-        });
-    </script>
     
 </head>
+<style>
+    html{
+        background: linear-gradient(to right, #434343 0%, black 100%);
+    }
+    body{
+        text-align: center;
+        margin-top: 10px;
+    }
+    h1{
+        color: white;
+    }
+    h3{
+        color: white;
+    }
+    .container{
+        border-color: white;
+        border-width: 1px; 
+        justify-content: center;
+    }
+    .chatbox{
+        color: white;
+        width: 1000px;
+        height: 500px; 
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        text-align: left;
+        overflow-y: scroll;
+        overflow-y: auto;
+        word-wrap: break-word;
+        margin: 0 auto;
+    }
+    .text-input{
+        border-color: white;
+        margin-top: 5px;
+        width: 400px;
+        height: 43px;
+        border-radius: 10px;
+        color: white;
+        background: linear-gradient(to right, #434343 0%, black 100%);
+    }
+    .button-84 {
+        align-items: center;
+        background-color: initial;
+        background-image: linear-gradient(#464d55, #25292e);
+        border-radius: 8px;   
+        border-width: 0;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, .1),0 3px 6px rgba(0, 0, 0, .05);
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        flex-direction: column;
+        font-family: expo-brand-demi,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+        font-size: 18px;
+        height: 43px;
+        justify-content: center;
+        line-height: 1;
+        margin: 0;
+        outline: none;
+        overflow: hidden;
+        padding: 0 32px;
+        text-align: center;
+        text-decoration: none;
+        transform: translate3d(0, 0, 0);
+        transition: all 150ms;
+        vertical-align: baseline;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        margin-top: 10px;
+        }
+
+        .button-84:hover {
+        box-shadow: rgba(0, 1, 0, .2) 0 2px 8px;
+        opacity: .85;
+        }
+
+        .button-84:active {
+        outline: 0;
+        }
+
+        .button-84:focus {
+        box-shadow: rgba(0, 0, 0, .5) 0 0 0 3px;
+        }
+
+        @media (max-width: 420px) {
+        .button-84 {
+            height: 40px;
+        }
+    }
+    .message-container {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        max-width: 70%;
+    }
+
+    .my-message {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+        border-top-right-radius: 0;
+    }
+
+    .other-message {
+        background-color: #e9ecef;
+        color: #333;
+        align-self: flex-start;
+        border-top-left-radius: 0;
+    }
+
+</style>
+
 <body>
     <h1>Chatroom - {{ chatroom_id }}</h1>
-    <button onclick="location.href='/logout'">Logout</button>
-    <div id="chatbox" style="height: 300px; overflow-y: scroll;"></div>
-    <input id="message_input" type="text" onkeypress="handleKeyPress(event)">
-    <button onclick="sendMessage()">Send</button>
+    <h3>You logged in as {{username}}</h3>
+    <button class="button-84" onclick="location.href='/logout'">Logout</button>
+    <div class="container">
+        <div class="chatbox" id="chatbox"></div>
+        <input class="text-input" id="message_input" type="text" onkeypress="handleKeyPress(event)">
+        <button class="button-84" onclick="sendMessage()">Send</button>
+    </div>
 </body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var socket = io();
+        socket.emit('fetch_messages');
+
+        socket.on('messages', function(data) {
+            var chatbox = document.getElementById('chatbox');
+            chatbox.innerHTML = ''; // Clear existing messages
+            data.forEach(function(message) {
+                appendMessage(message);
+            });
+        });
+
+        socket.on('message', function(data) {
+            appendMessage(data);
+        });
+
+        function appendMessage(message) {
+            var chatbox = document.getElementById('chatbox');
+            var messageElement = document.createElement('div');
+            messageElement.textContent = message.username + ': ' + message.message;
+            messageElement.classList.add('message-container');
+            if (message.username === "{{ username }}") {
+                messageElement.classList.add('my-message');
+            } else {
+                messageElement.classList.add('other-message');
+            }
+            chatbox.appendChild(messageElement);
+            chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to bottom
+        }
+    });
+
+    function sendMessage() {
+        var messageInput = document.getElementById('message_input');
+        var message = messageInput.value.trim();
+        if (message !== '') {
+            var socket = io();
+            socket.emit('message', {
+                username: "{{ username }}",
+                message: message
+            });
+            messageInput.value = '';
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.keyCode === 13) {
+            sendMessage();
+        }
+    }
+
+
+</script>
 </html>
