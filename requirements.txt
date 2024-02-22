@@ -1,3 +1,4 @@
+--upgrade pip
 Flask-SocketIO
 Flask==3.0.1
 random2
