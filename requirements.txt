@@ -1,4 +1,4 @@
 Flask-SocketIO
-Flask
+Flask==3.0.1
 random
 string
